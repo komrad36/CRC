@@ -94,7 +94,7 @@ void golden_lut_print_demo_intel() {
 	uint32_t* tbl = new uint32_t[n << 1];
 	compute_golden_lut_intel(tbl, n);
 	print_golden_lut_intel(tbl, n);
-	delete tbl;
+	delete[] tbl;
 }
 
 #define CRC_ITER(i) case i:								\

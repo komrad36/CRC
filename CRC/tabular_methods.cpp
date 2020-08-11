@@ -574,7 +574,7 @@ void tabular_method_table_print_demo() {
 	uint32_t* tbl = new uint32_t[256 * num_tables];
 	compute_tabular_method_tables(tbl, num_tables);
 	print_tabular_method_tables(tbl, num_tables);
-	delete tbl;
+	delete[] tbl;
 }
 
 // OPTION 6

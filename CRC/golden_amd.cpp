@@ -46,7 +46,7 @@ void golden_lut_print_demo_amd() {
 	uint32_t* tbl = new uint32_t[n << 1];
 	compute_golden_lut_amd(tbl, n);
 	print_golden_lut_amd(tbl, n);
-	delete tbl;
+	delete[] tbl;
 }
 
 #define CRC_ITER(i) case i:								\
