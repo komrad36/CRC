@@ -235,7 +235,7 @@ But because we're mod 2, the result of (1 + 1 = 10 in binary = 2 in decimal) wil
       0         1         1         0
 ```
 
-Note a very interesting things about this result. If we had done 1 + 1 in binary, we'd have gotten 10, i.e. 0 with a carry of 1. If we discard the carry, we get 0. In other words, we don't actually have to do any modulo (division) operations to get our answers. We just have to throw away the carry after a normal binary addition, i.e. perform "carryless" binary addition.
+Note a very interesting thing about this result. If we had done 1 + 1 in binary, we'd have gotten 10, i.e. 0 with a carry of 1. If we discard the carry, we get 0. In other words, we don't actually have to do any modulo (division) operations to get our answers. We just have to throw away the carry after a normal binary addition, i.e. perform "carryless" binary addition.
 
 Note another interesting thing: the answer was 1 if exactly one input was 1. If neither or both inputs were 1, the answer was 0. This is equivalent to an XOR (exclusive OR) operation.
 
@@ -284,7 +284,7 @@ XOR.
 And because multiplication is just repeated addition, and division is the inverse of multiplication, we see that the entire suite of polynomial arithmetic mod 2 is EQUIVALENT to binary arithmetic with no carries, i.e. carryless binary arithmetic. This is great, because carryless binary arithmetic is very tractable to perform with a computer.
 
 Onto polynomial multiplication mod 2. We'll consider writing out a long multiplication. The operation is quite simple, for three reasons:
-1) in binary, as you walk along multiplying the top number by each bit of the bottom number, and adding it all up, you're only ever multiplying by 0 or 1, i.e either adding 0 or adding the top number itself. No multiplication required.
+1) in binary, as you walk along multiplying the top number by each bit of the bottom number, and adding it all up, you're only ever multiplying by 0 or 1, i.e. either adding 0 or adding the top number itself. No multiplication required.
 2) no carries on the subsequent addition
 3) the subsequent "addition" is actually just XOR!
 
@@ -1688,7 +1688,7 @@ And so this is the version of the golden result we will use for implementation. 
 
 Just a few more implementation details to address.
 
-First, that precomputed table. We need to generate it, and see how few entries can we get away with.
+First, that precomputed table. We need to generate it, and see how few entries we can get away with.
 
 Well, we will be using the variant of the x86 crc32 instruction that processes 64 bits at a time. When we split up our message into 3 equal chunks (each of length x), it is reasonable for now to require each part to be a multiple of 64 bits (don't worry, we will loosen this restriction, and several others, later).
 
@@ -2267,7 +2267,7 @@ Putting it all together:
 And there we have it! A production-ready CRC32 implementation supporting messages of any length, with any alignment, with world-class performance on modern Intel x86 architectures. The LUT can be stored in the program or generated at runtime from the code shown earlier.
 
 
-So how'd we do? As with Option 12, we should be able to predict our performance: we expect a peak theoretical completion of 1 crc32 per cycle, each processing 8 bytes (64 bits). Therefore, we have an theoretical ceiling of 64 bits per cycle.
+So how'd we do? As with Option 12, we should be able to predict our performance: we expect a peak theoretical completion of 1 crc32 per cycle, each processing 8 bytes (64 bits). Therefore, we have a theoretical ceiling of 64 bits per cycle.
 
 Do we achieve it?
 
@@ -2278,13 +2278,13 @@ Short answer: YES. For a large workload, we achieve an empirical throughput of a
 
   Approach                                 |  Performance
 -------------------------------------------|------------------------
-  OPTION 1: Check Carry Flag and Jump      |   0.91 bits per cycle
+  OPTION 1: Check Carry Flag and Jump      |   0.09 bits per cycle
   OPTION 2: Multiply Mask                  |   0.20 bits per cycle
   OPTION 3: Bit Mask                       |   0.25 bits per cycle
   OPTION 4: Conditional Move               |   0.33 bits per cycle
-  OPTION 5: Compiler Output                |   0.50 bits per cycle
+  OPTION 5: Compiler Output                |   0.33 bits per cycle
   OPTION 6: 1-byte Tabular                 |   1.10 bits per cycle
-  OPTION 7: 2-byte Tabular                 |   1.70 bits per cycle
+  OPTION 7: 2-byte Tabular                 |   1.60 bits per cycle
   OPTION 8: 4-byte Tabular                 |   2.70 bits per cycle
   OPTION 9: 8-byte Tabular                 |   4.80 bits per cycle
   OPTION 10: 16-byte Tabular               |   8.00 bits per cycle
