@@ -923,7 +923,7 @@ Unfortunately, this option is actually slightly SLOWER than Option 5, in additio
 
 To understand why, we have to talk about how memory works in modern computers.
 
-As CPUs got faster, memory did too, but not by nearly as much. Modern CPUs cycle WAY faster than memory can supply requested data. It's not uncommon for a memory access to take several HUNDRED cycles. This is true no matter the architecture - low-end laptop, top-of-the-line desktop, or PS4. (Especially the PS4, as its memory is trades high throughput for high latency...)
+As CPUs got faster, memory did too, but not by nearly as much. Modern CPUs cycle WAY faster than memory can supply requested data. It's not uncommon for a memory access to take several HUNDRED cycles. This is true no matter the architecture - low-end laptop, top-of-the-line desktop, or PS4. (Especially the PS4, as its memory trades high throughput for high latency...)
 
 This disparity between how much work the CPU can perform on data and how long it has to wait to GET the data it needs is so large that CPU designers implement a system of CACHE memory that sits between the CPU and main memory.
 
