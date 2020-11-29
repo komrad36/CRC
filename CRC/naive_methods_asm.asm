@@ -17,45 +17,12 @@ neg rdx
 START_OF_LOOP:
 xor al, byte ptr [rcx + rdx]
 
+REPEAT 8
 shr eax, 1
-jnc SKIP_XOR_1
+jnc @F
 xor eax, P
-SKIP_XOR_1:
-
-shr eax, 1
-jnc SKIP_XOR_2
-xor eax, P
-SKIP_XOR_2:
-
-shr eax, 1
-jnc SKIP_XOR_3
-xor eax, P
-SKIP_XOR_3:
-
-shr eax, 1
-jnc SKIP_XOR_4
-xor eax, P
-SKIP_XOR_4:
-
-shr eax, 1
-jnc SKIP_XOR_5
-xor eax, P
-SKIP_XOR_5:
-
-shr eax, 1
-jnc SKIP_XOR_6
-xor eax, P
-SKIP_XOR_6:
-
-shr eax, 1
-jnc SKIP_XOR_7
-xor eax, P
-SKIP_XOR_7:
-
-shr eax, 1
-jnc SKIP_XOR_8
-xor eax, P
-SKIP_XOR_8:
+@@:
+ENDM
 
 inc rdx
 jnz START_OF_LOOP
@@ -149,6 +116,5 @@ jnz START_OF_LOOP
 END_OF_LOOP:
 ret
 option_4_cmove ENDP
-
 
 END
