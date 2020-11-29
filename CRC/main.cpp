@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <random>
 
-static constexpr bool kPrintTables = true;
+static constexpr bool kPrintTables = false;
 
 using namespace std::chrono;
 
