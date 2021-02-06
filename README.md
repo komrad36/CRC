@@ -160,7 +160,7 @@ As a quick check, let's look at what we've got so far, plugging in 2 for to inte
     P = 2^3+2*2^2+2 = 8+2*4+2=8+8+2=18
 ```
 
-The polynomial multiplication correctly produced that 6*3=18 when we substitute the base 2 for x.
+The polynomial multiplication correctly produced that `6*3=18` when we substitute the base 2 for x.
 
 However, notice that the polynomial P itself ISN'T valid to be directly read off as binary, even though A and B are. Its coefficients are 1, 2, 1, 0, and so if we write out P interpreted as binary, we get 1210. We can't have a coefficient of 2 in binary! Of course, if you actually substitute 2 in for x and then sum, you'd get a CARRY operation that would propagate left, resulting in a proper binary result. In other words, if we had actually done the multiplication in binary:
 
@@ -907,7 +907,7 @@ Very simple and clean. We ONLY have our outer loop now, each iteration of which 
 
 Our implementation now involves memory access into both the message and the table, and is becoming less compute-intensive and more memory-intensive, which means a measure of its performance in terms of cycles per bit will start to become more variable depending on your particular machine. That said, this approach will typically achieve roughly 0.9 cycles per bit, or roughly 1.1 bits per cycle. As we get faster from here on, I'll start inverting the measurement, so bits per cycle instead of cycles per bit, to keep the numbers greater than 1 and therefore easier to reason about.
 
-So this method is at least a 3-fold increase in speed on the best naive approach, in addition to being much simpler to write out in C++. In exchange, it requires 256 table entries of 32 bits (4 bytes) each, i.e. a table consuming 256*4==1024 bytes of space (1 KB). This is generally an acceptable tradeoff, even in most embedded system implementations, and just as with Option 3, many sources will stop here and tell you this is optimal.
+So this method is at least a 3-fold increase in speed on the best naive approach, in addition to being much simpler to write out in C++. In exchange, it requires 256 table entries of 32 bits (4 bytes) each, i.e. a table consuming `256*4==1024` bytes of space (1 KB). This is generally an acceptable tradeoff, even in most embedded system implementations, and just as with Option 3, many sources will stop here and tell you this is optimal.
 
 
 Nope. For some embedded architectures, this option may be the best tradeoff if memory is scarce. But on x86, we can still do MUCH better.
@@ -1009,7 +1009,7 @@ We are going to try to use this property to process a 16-bit chunk of the messag
 
 Our table can't directly give us this, but because the low 8 bits are ALWAYS zero, this 16-bit value nonetheless only has 2^8 = 256 possible states! So we can create ANOTHER table of the same size (256 entries, 32 bits each, i.e. a 1 KB table) that allows us to lookup CRC(Az) for any A.
 
-Note that this is the key distinction that allows us to perform our 16 bits of CRC without a 16-bit table: having using the linearity of CRC to separate the 16 bits into two 8-bit chunks, we can use 2 8-bit tables instead of 1 16-bit table, which is the difference between 2*(2 to the 8th) entries and 1*(2 to the 16th) entries, which is 512 entries instead of 65536.
+Note that this is the key distinction that allows us to perform our 16 bits of CRC without a 16-bit table: having using the linearity of CRC to separate the 16 bits into two 8-bit chunks, we can use 2 8-bit tables instead of 1 16-bit table, which is the difference between `2*(2 to the 8th)` entries and `1*(2 to the 16th)` entries, which is 512 entries instead of 65536.
 
 If we call our original table tbl0, and the new table tbl1, this means we can perform a 16-bit, i.e. 2-byte, CRC as follows:
 
@@ -1093,7 +1093,7 @@ The natural question is whether we can further exploit this approach to process 
 
 Where tbl is our single 2 KB table (512 entries).
 
-So access to tbl0 is unchanged, and we access tbl1 by simply adding 256 to our index in order to move past the 256 entries of tbl0 and into tbl1. As with "R >> 0", we keep the 0 * 256 for symmetry; the compiler won't actually generate any instructions for it.
+So access to tbl0 is unchanged, and we access tbl1 by simply adding 256 to our index in order to move past the 256 entries of tbl0 and into tbl1. As with "R >> 0", we keep the `0 * 256` for symmetry; the compiler won't actually generate any instructions for it.
 
 Expanding this to 32 bits at a time follows the same pattern, except that since we shift out the ENTIRE 32 bits of the previous R in the process, we no longer need a shift R term at all.
 
@@ -1732,7 +1732,7 @@ The longer our chunks (i.e. the larger our n), the more time we spend just doing
 
 I've limited mine to n = 256. By this point the overhead is a negligible part of total runtime. Even 128 is fine; further improvement in performance at 256 is only noticeable for fairly large M.
 
-That's 2*256=512 entries, 32 bits each. Not bad.
+That's `2*256=512` entries, 32 bits each. Not bad.
 
 To construct the table, we'll use a technique similar to how we generated the tables for our Tabular method. In this case, we start with the value 1 in R. For each new entry, we churn 64 zero bits through the CRC machine, then store out the new table entry and continue churning. We repeat until we have 512 entries:
 
@@ -1849,8 +1849,8 @@ For example, if our chunks were only 8 bytes long, i.e. a chunk size of n = 1, w
 
 To figure out where to jump to, we have two decent options.
 
-Option 1: n * bytes_per_triplet
-We can figure out how many bytes of instructions each of the above triplets of crc32s are; it should be consistent. Then, when we reach the top of the waterfall, we simply jump forward by n * bytes_per_triplet, and start executing from there.
+Option 1: `n * bytes_per_triplet`
+We can figure out how many bytes of instructions each of the above triplets of crc32s are; it should be consistent. Then, when we reach the top of the waterfall, we simply jump forward by `n * bytes_per_triplet`, and start executing from there.
 
 But there's a complication. The sizes of the triplets are NOT consistent, sadly. Small constant offsets (less than 256, i.e. that fit in an 8 bit constant) result in a smaller instruction encoding than large constant offsets (greater than or equal to 256). So the bottom few triplets are actually smaller than preceding ones. We could manually generate the same size encoding for all instructions, bypassing both the compiler and even the assembler and instead writing our own instruction bytes. This is my preferred solution for efficiency and compactness, but it would be better to find a solution that allows us to express this code in a high-level language and achieve optimal performance (possibly sacrificing a little bit of code size or some other quantity).
 
@@ -1858,11 +1858,11 @@ A possible workaround is to change our offset math a bit so there's always a con
 
 Option 2: jump table
 
-Instead of jumping directly to the instruction at n * bytes_per_triplet past the start of the waterfall, we use 'n' to index into yet another table, called a jump table, which contains the offsets of the cases (the triplets). We jump forward by the amount we look up in the table.
+Instead of jumping directly to the instruction at `n * bytes_per_triplet` past the start of the waterfall, we use 'n' to index into yet another table, called a jump table, which contains the offsets of the cases (the triplets). We jump forward by the amount we look up in the table.
 
 Obviously, this adds an extra table with 256 entries (one for each possible jump target). If we were handwriting it we could pack it into 2 bytes per entry, possibly even 1 byte with scaling. But alas, compilers are not very smart, and they will produce a 4-byte-per-entry jump table.
 
-While an extra 4*256 = 1024 bytes is not great, runtime performance should be roughly unaffected: instead of calculating the offset and jumping, we look up the offset (from a small table which should reside in L1) and then jump.
+While an extra `4*256 = 1024` bytes is not great, runtime performance should be roughly unaffected: instead of calculating the offset and jumping, we look up the offset (from a small table which should reside in L1) and then jump.
 
 This is not the only optimization or size reduction we're leaving on the table in this implementation discussion; I'll list all the ones I can think of later.
 
@@ -1970,7 +1970,7 @@ Recall that this is a ternary expression which is equivalent to:
     }
 ```
 
-We are calculating n, the number of blocks in each chunk. We are splitting the bytes into 3 equal parts (A, B, and C) and each block is 8 bytes, so in total we must divide bytes by 8*3=24 to get n.
+We are calculating n, the number of blocks in each chunk. We are splitting the bytes into 3 equal parts (A, B, and C) and each block is 8 bytes, so in total we must divide bytes by `8*3=24` to get n.
 
 However, if that value would be greater than 256, we will not process the whole message, and instead limit ourselves to n = 256, because that's how big our LUT (look-up table) is - not to mention our jump table. So in that case we just set n = 256.
 
@@ -1987,7 +1987,7 @@ We also create similar B and C pointers to the end of the B and C chunks, respec
     uint64_t crcB = 0, crcC = 0;
 ```
 
-Initialize our B-chunk and C-chunk CRCs to 0. These are inside the while loop, because they only exist during parallel processing. After we've done our iterations, they will fold their results into crcA, and crcA alone will accumulate the value and carry it out of the while loop (or back through for another round of processing, if we have more than our self-imposed limit of 256*3 blocks worth of message to process).
+Initialize our B-chunk and C-chunk CRCs to 0. These are inside the while loop, because they only exist during parallel processing. After we've done our iterations, they will fold their results into crcA, and crcA alone will accumulate the value and carry it out of the while loop (or back through for another round of processing, if we have more than our self-imposed limit of `256*3` blocks worth of message to process).
 
 ```
     switch (n) {
@@ -2110,7 +2110,7 @@ XOR that result with the final 8 bytes of C.
     crcA = _mm_crc32_u64(crcC, ...);
 ```
 
-Perform the operation CRC(crcC, result on that result. Store that final result in crcA.
+Perform the operation CRC(crcC, result) on that result. Store that final result in crcA.
 
 Next line:
 
@@ -2118,7 +2118,7 @@ Next line:
     bytes -= 24 * n
 ```
 
-We've just processed n blocks of 8 bytes each, in each of A, B, and C, for a total of 8*3*n = 24*n bytes of message processed. We update 'bytes' accordingly. The accumulated result is in crcA.
+We've just processed n blocks of 8 bytes each, in each of A, B, and C, for a total of `8*3*n = 24*n` bytes of message processed. We update 'bytes' accordingly. The accumulated result is in crcA.
 
 ```
     pA = pC;
@@ -2147,15 +2147,15 @@ This is almost it; we just have to tackle a few things I left off for clarity fo
 Note that this is often not something you have to think explicitly about if you're manipulating data which is inherently 8 bytes in nature. For example, if you create an array of uint64_t's in C/C++, it will inherently align itself to an 8-byte boundary if created via any sane method, so any consumer of the data can safely assume that it is aligned. However, in this case, we're taking a big buffer of data that isn't inherently sized in nature, so we have no expectation of alignment. Yet we CHOOSE to access it in 8-byte blocks for performance reasons. Therefore WE must be responsible for ensuring alignment if we want the best performance.
 
 
-- Leaf size. The complexity and overhead of this approach to CRC only makes sense for data of a certain size, and so performance is significantly approved by checking for a minimum size of remaining message data (the "leaf size"), and if you're below that, instead of entering the main loop, it's faster to just complete the remainder using the naive hardware 64-bit CRC without parallelism. This also means you don't need switch cases below the leaf size, nor entries in the LUT, although this is a minor detail and can probably be left in for simplicity. The important part is to not enter the while loop if fewer bytes remain than the leaf size, and finish any remaining bytes afterward. The appropriate cutoff varies by architecture and should be a multiple of 24 since what we really want is a minimum n, and an increase of 1 in n increases the amount of message processed by 8*3=24 bytes. I use n=6 as my cutoff.
+- Leaf size. The complexity and overhead of this approach to CRC only makes sense for data of a certain size, and so performance is significantly approved by checking for a minimum size of remaining message data (the "leaf size"), and if you're below that, instead of entering the main loop, it's faster to just complete the remainder using the naive hardware 64-bit CRC without parallelism. This also means you don't need switch cases below the leaf size, nor entries in the LUT, although this is a minor detail and can probably be left in for simplicity. The important part is to not enter the while loop if fewer bytes remain than the leaf size, and finish any remaining bytes afterward. The appropriate cutoff varies by architecture and should be a multiple of 24 since what we really want is a minimum n, and an increase of 1 in n increases the amount of message processed by `8*3=24` bytes. I use n=6 as my cutoff.
 
-- Faster division by 24. Good compilers will optimize that bytes / 24 into a multiply and a shift, but we know something the compiler doesn't: in that 'bytes / 24', bytes will never be larger than 256*24. Actually, compilers SHOULD know that, since it's a simple ternary that obviously excludes any larger value, but they don't currently take advantage of this. But we can do so manually to produce a potentially faster division and smaller code size:
+- Faster division by 24. Good compilers will optimize that bytes / 24 into a multiply and a shift, but we know something the compiler doesn't: in that 'bytes / 24', bytes will never be larger than `256*24`. Actually, compilers SHOULD know that, since it's a simple ternary that obviously excludes any larger value, but they don't currently take advantage of this. But we can do so manually to produce a potentially faster division and smaller code size:
 
 ```
     x * 2731 >> 16
 ```
 
-This expression is equivalent to x / 24 for x <= 256*24. See the outstanding book Hacker's Delight by Henry S. Warren, Jr., chapter 10, for a discussion of equivalences to integer division by constants.
+This expression is equivalent to x / 24 for x <= `256*24`. See the outstanding book Hacker's Delight by Henry S. Warren, Jr., chapter 10, for a discussion of equivalences to integer division by constants.
 
 
 - More compact representation of that giant switch statement. We can use a series of "doubler" preprocessor macros to repeatedly duplicate a single case implementation until we have all of them:
