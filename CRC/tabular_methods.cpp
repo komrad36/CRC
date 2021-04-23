@@ -1,9 +1,12 @@
 #include <cstdint>
 #include <cstdio>
 
-constexpr uint32_t P = 0x82f63b78U;
+// this poly CAN be changed to any desired 32-bit CRC poly. if it is changed,
+// g_tbl below must then be rebuilt in order to
+// reflect the change (see tabular_method_table_print_demo() below)
+static constexpr uint32_t P = 0x82f63b78U;
 
-extern "C" uint32_t g_tbl[] =
+static constexpr uint32_t g_tbl[] =
 {
     // 1-byte tabular
     0x00000000, 0xf26b8303, 0xe13b70f7, 0x1350f3f4, 0xc79a971f, 0x35f1141c, 0x26a1e7e8, 0xd4ca64eb,

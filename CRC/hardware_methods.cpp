@@ -1,7 +1,9 @@
 #include <cstdint>
 #include <immintrin.h>
 
-constexpr uint32_t P = 0x82f63b78U;
+// for these approaches, the poly CANNOT be changed, because these approaches
+// use x86 hardware instructions which hardcode this poly internally.
+static constexpr uint32_t P = 0x82f63b78U;
 
 // OPTION 11
 uint32_t option_11_hardware_1_byte(const void* M, uint32_t bytes)

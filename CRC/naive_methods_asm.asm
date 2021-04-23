@@ -1,5 +1,6 @@
 .CODE
 
+; this poly CAN be changed to any desired 32-bit CRC poly.
 P equ 082f63b78h
 
 ; uint32_t f(const void* M, uint32_t bytes);

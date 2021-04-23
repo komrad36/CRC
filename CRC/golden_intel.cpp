@@ -2,7 +2,9 @@
 #include <cstdio>
 #include <immintrin.h>
 
-constexpr uint32_t P = 0x82f63b78U;
+// for this approach, the poly CANNOT be changed, because this approach
+// uses x86 hardware instructions which hardcode this poly internally.
+static constexpr uint32_t P = 0x82f63b78U;
 
 static constexpr uint64_t g_lut_intel[] = {
     0x00000001493c7d27, 0x493c7d27ba4fc28e, 0xf20c0dfeddc0152b, 0xba4fc28e9e4addf8,
@@ -133,7 +135,7 @@ crcC = _mm_crc32_u64(crcC, *(uint64_t*)(pC - 8*(i)));
 #define CRC_ITERS_256_TO_2() do {X0(256) X1(254) X2(250) X3(242) X4(226) X5(194) X6(130) X7(2)} while(0)
 
 // must be >= 24
-constexpr uint32_t LEAF_SIZE_INTEL = 6 * 24;
+static constexpr uint32_t LEAF_SIZE_INTEL = 6 * 24;
 
 // OPTION 13
 uint32_t option_13_golden_intel(const void* M, uint32_t bytes, uint32_t prev/* = 0*/)

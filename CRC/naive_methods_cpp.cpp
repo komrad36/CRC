@@ -1,6 +1,7 @@
 #include <cstdint>
 
-constexpr uint32_t P = 0x82f63b78U;
+// this poly CAN be changed to any desired 32-bit CRC poly.
+static constexpr uint32_t P = 0x82f63b78U;
 
 uint32_t option_5_naive_cpp(const void* M, uint32_t bytes)
 {
