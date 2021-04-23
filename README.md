@@ -403,7 +403,7 @@ Let's assume P and M are stored as lists of integers, where each integer represe
 
 And here's our code:
 
-```
+```python
     M += [0] * w                    # append w zero bits so we don't fall off
     for i in range(len_m):          # for each bit in M:
         if M[i]:                    #  if bit is set:
@@ -451,7 +451,7 @@ Note that instead of having to separately "catch" and check the leftmost bit at 
 
 This also means we can drop the (always set) high leftmost bit of the poly, and just keep the remaining w bits. From now on, P will be represented this way, as the truncated w-bit version instead of the n-bit version with a leading 1.
 
-```
+```python
     M += [0] * w                     # append w zero bits so we don't fall off
     R = M[:w]                        # initialize R with the first w bits of M
     for i in range(len_m):           # for each bit in M:
@@ -498,7 +498,7 @@ And XOR is commutative! So we can just as well write:
 
 In other words, we can just shift in 0 bits into the right side of R as we traverse. Instead of inserting M bits into the right side, we can XOR them into the leftmost bit, just before they are to pop out!
 
-```
+```python
     R = [0] * w                      # initialize R with all 0s
     for i in range(len_m):           # for each bit in M:
         R[0] ^= M[i]                 #  XOR it into the leftmost bit
@@ -515,7 +515,7 @@ Well, almost.
 
 This approach shifts in a single message bit per iteration. Unfortunately, real CPU hardware addresses BYTES (8 bits) at a time, so although we could implement this as is, a small modification to XOR in a whole byte at a time will improve its suitability for real hardware:
 
-```
+```python
     R = [0] * w                          # initialize R with all 0s
     for i in range(len_m // 8):          # for each BYTE in M:
         for j in range(8):               #  XOR it into the leftmost BYTE
@@ -534,7 +534,7 @@ Naturally, this restricts our message size to a multiple of 8 bits (1 byte). Thi
 
 Okay, let's ground this a little bit by deciding on a fixed size for w - how about w = 8 for now - and replacing some of our lists of bits with actual numbers, integers, stored directly as Python integer variables. R will be an 8-bit integer variable. P will be an 8-bit integer constant. M will be a list of BYTES. len_m will be the number of bytes in M. Same algorithm:
 
-```
+```python
     R = 0                               # initialize R with 0
     for i in range(len_m):              # for each BYTE in M:
         R ^= M[i]                       #  XOR it into the leftmost/only byte of R
@@ -553,7 +553,7 @@ Note also that XORing the new message byte, M[i], into the leftmost byte of R, i
 
 So let's now rewrite this with w = 32, as a 32-bit CRC is the eventual goal of this paper. Once we do so, we will no longer be able to get away with XORing M[i] directly into R, and will actually have to XOR it into the leftmost byte of R:
 
-```
+```python
     R = 0                                    # initialize R with 0
     for i in range(len_m):                   # for each BYTE in M:
         R ^= M[i] << 24                      #  XOR it into the leftmost byte of R
@@ -580,7 +580,7 @@ Be warned that some implementations do this and some don't! To make it even more
 
 Here's what our algorithm looks like with a reflected R:
 
-```
+```python
     R = 0                             # initialize R with 0
     for i in range(len_m):            # for each BYTE in M:
         R ^= M[i]                     #  XOR it into the rightmost byte of R
@@ -598,7 +598,7 @@ The outer structure is fairly simple: zero out R, loop over all the bytes in M. 
 
 Using a loop:
 
-```
+```assembly
     mov cl, 8        ; store 8 into the register "cl"
     LOOP_TOP:        ; an arbitrarily-named label marking the top of the loop
     ; do stuff       ; the actual instructions that are the loop contents would go here
@@ -636,7 +636,7 @@ Before we begin, a reminder that code implementations for all of the options acc
 ### OPTION 1: Check Carry Flag and Jump ###
 This option implements the above pseudocode steps almost directly. In x86 CPU instructions:
 
-```
+```assembly
     shr R, 1        ; shift R right by 1
     jnc SKIP_XOR    ; if the carry flag is not set, jump to SKIP_XOR
     xor R, P
@@ -672,7 +672,7 @@ In pseudocode:
 
 In x86:
 
-```
+```assembly
     mov tmp, R        ; cycle 1
     shr R, 1          ; cycle 1
     and tmp, 1        ; cycle 1
@@ -706,7 +706,7 @@ In pseudocode:
 
 In x86:
 
-```
+```assembly
     mov tmp, R        ; cycle 1
     shr R, 1          ; cycle 1
     and tmp, 1        ; cycle 1
@@ -741,7 +741,7 @@ In pseudocode:
 
 In x86:
 
-```
+```assembly
     xor tmp, tmp    ; cycle 1
     shr R, 1        ; cycle 1
     cmovc tmp, P    ; cycle 2
@@ -759,7 +759,7 @@ Well, the fact that we perform a conditional move based on a flag set by the shi
 
 The best solution I know of is actually just a direct C port of the Python solution:
 
-```
+```cpp
     uint32_t crc32(const uint8_t* M, uint32_t len_m) {
         uint32_t R = 0;                         // initialize R with 0
         for (uint32_t i = 0; i < len_m; ++i) {  // for each BYTE in M:
@@ -779,7 +779,7 @@ I included the complete function so that the type of M and the return type of th
 
 We can also write this a bit more compactly using a C++ ternary, which looks like this:
 
-```
+```cpp
     condition ? a : b
 ```
 
@@ -787,7 +787,7 @@ The value of the expression is 'a' if the condition is true, or 'b' if not.
 
 This gives:
 
-```
+```cpp
     uint32_t crc32(const uint8_t* M, uint32_t len_m) {
         uint32_t R = 0;                         // initialize R with 0
         for (uint32_t i = 0; i < len_m; ++i) {  // for each BYTE in M:
@@ -817,7 +817,7 @@ In pseudocode:
 
 In x86:
 
-```
+```assembly
     mov     tmp, R      ; cycle 1
     shr     R, 1        ; cycle 1
     mov     tmp2, R     ; cycle 2
@@ -847,7 +847,7 @@ Therefore, before starting the outer loop iteration, we have R. After, we have R
 
 I will use A, B, C, D, ... as placeholders to mean either 0 or P. The effect of a single outer loop iteration, in which we process 1 byte of message, is:
 
-```
+```cpp
     R = (R >> 1) ^ A
     R = (R >> 1) ^ B
     R = (R >> 1) ^ C
@@ -860,19 +860,19 @@ I will use A, B, C, D, ... as placeholders to mean either 0 or P. The effect of 
 
 Turning this into a single expression:
 
-```
+```cpp
     (((((((((((((((R >> 1) ^ A) >> 1) ^ B) >> 1) ^ C) >> 1) ^ D) >> 1) ^ E) >> 1) ^ F) >> 1) ^ G) >> 1) ^ H
 ```
 
 Then we can distribute the shifts in order to simplify the expression:
 
-```
+```cpp
     (R >> 8) ^ (A >> 7) ^ (B >> 6) ^ (C >> 5) ^ (D >> 4) ^ (E >> 3) ^ (F >> 2) ^ (G >> 1) ^ H
 ```
 
 We can then combine all the terms containing A through H into a single value T:
 
-```
+```cpp
     (R >> 8) ^ T
 ```
 
@@ -884,7 +884,7 @@ The ith entry in the table - the T for rightmost 8 bits of R equal to i - is the
 
 In other words, the ith entry in the table, which we'll call tbl[i], is simply CRC(i) for the given P! For any 8-bit value X, we therefore have a way to instantly lookup the CRC:
 
-```
+```cpp
     CRC(X) = tbl[X]     for any 8-bit X
 ```
 
@@ -893,7 +893,7 @@ Okay, so we precompute and store off our table. Then the new tabular CRC impleme
 
 ### OPTION 6: 1-byte Tabular ###
 
-```
+```cpp
     uint32_t crc32(const uint8_t* M, uint32_t len_m) {
         uint32_t R = 0;
         for (uint32_t i = 0; i < len_m; ++i) {
@@ -1022,7 +1022,7 @@ Our loop body now looks like the following:
 
 ### OPTION 7: 2-byte Tabular ###
 
-```
+```cpp
     uint32_t crc32(const uint16_t* M, uint32_t len_m) {
         uint32_t R = 0;
         for (uint32_t i = 0; i < len_m >> 1; ++i) {
@@ -1078,7 +1078,7 @@ Option 7 processes 16 bits per iteration, and although it requires more basic op
 
 The natural question is whether we can further exploit this approach to process even more bytes at once, and, indeed, we can. First, though, a little housekeeping. We COULD use two different tables, tbl0 and tbl1, but we definitely want tbl1 to be contiguous with tbl0, coming directly after it with no empty space in memory, for both simplicity of access and for cache performance. There are ways to achieve this while keeping the separate 'tbl0' and 'tbl1' identifiers, but for simplicity, especially as we're about to add more tables, let's make it one big table:
 
-```
+```cpp
     uint32_t crc32(const uint16_t* M, uint32_t len_m) {
         uint32_t R = 0;
         for (uint32_t i = 0; i < len_m >> 1; ++i) {
@@ -1099,7 +1099,7 @@ Expanding this to 32 bits at a time follows the same pattern, except that since 
 
 ### OPTION 8: 4-byte Tabular ###
 
-```
+```cpp
     uint32_t crc32(const uint32_t* M, uint32_t len_m) {
         uint32_t R = 0;
         for (uint32_t i = 0; i < len_m >> 2; ++i) {
@@ -1129,7 +1129,7 @@ This works just like the previous example, but because we're accessing more data
 
 ### OPTION 9: 8-byte Tabular ###
 
-```
+```cpp
     uint32_t crc32(const uint32_t* M, uint32_t len_m) {
         uint32_t R = 0;
         while (len_m) {
@@ -1161,7 +1161,7 @@ We can keep going to 16...
 
 ### OPTION 10: 16-byte Tabular ###
 
-```
+```cpp
     uint32_t crc32(const uint32_t* M, uint32_t len_m) {
         uint32_t R = 0;
         while (len_m) {
@@ -1205,7 +1205,7 @@ Some implementations choose to precompute the table at compile-time and just sto
 
 Let's start by considering just the first 256 elements, i.e. 'tbl0', which, recall, stores the following:
 
-```
+```cpp
     tbl0[i] = CRC(i)
 ```
 
@@ -1213,7 +1213,7 @@ Each entry in this 256-entry block is the CRC of the 8-bit value i.
 
 Okay, so we can just use our naive CRC implementation to compute 256 CRCs:
 
-```
+```cpp
     for (int i = 0; i < 256; ++i) {
         uint32_t R = i;
         for (int j = 0; j < 8; ++j) {
@@ -1232,7 +1232,7 @@ For Option 6, 1-byte tabular, this is all you need - the 256 entry table.
 
 For Option 7, 2-byte tabular, recall that we need the following:
 
-```
+```cpp
     tbl1[i] = CRC(i << 8)
 ```
 
@@ -1242,25 +1242,25 @@ We COULD continue the same way, picking up R where we left off from tbl0 and chu
 
 Recall that in the 1-byte tabular approach, we process 1 byte of message data in the following way:
 
-```
+```cpp
     R = (R >> 8) ^ tbl0[uint8_t(R ^ M[i])];
 ```
 
 In this case our message byte to be processed is all 0 bits, so we have:
 
-```
+```cpp
     R = (R >> 8) ^ tbl0[uint8_t(R ^ 0)];
 ```
 
 Which is just:
 
-```
+```cpp
     R = (R >> 8) ^ tbl0[uint8_t(R)];
 ```
 
 This operation will churn another 8 zero bits through the CRC machine. If we feed it CRC(i), it will give back CRC(i << 8). So if we give it tbl0[i], it will give back tbl1[i]. Perfect!
 
-```
+```cpp
     for (int i = 0; i < 256; ++i) {
         const uint32_t R = tbl0[i];
         tbl1[i] = (R >> 8) ^ tbl0[uint8_t(R)];
@@ -1273,7 +1273,7 @@ Again, the above operation transforms CRC(i) into CRC(i << 8). This is true for 
 
 Putting it all together:
 
-```
+```cpp
 void initialize_tables(const int num_tables) {
     int i = 0;
 
@@ -1326,7 +1326,7 @@ The crc32 x86 instruction effectively performs an iteration of our previous appr
 
 All major compilers expose "intrinsic" functions for the various forms of this instruction, which are C/C++ functions that you can call to request the instruction be generated directly, in the header "nmmintrin.h" (i.e. you must #include <nmmintrin.h> to use them). Their declarations look like this:
 
-```
+```cpp
     uint32_t _mm_crc32_u8 (uint32_t R, uint8_t  M);
     uint32_t _mm_crc32_u16(uint32_t R, uint16_t M);
     uint32_t _mm_crc32_u32(uint32_t R, uint32_t M);
@@ -1363,7 +1363,7 @@ We can start with _mm_crc32_u8, which processes 1 byte of additional message dat
 
 I've reprinted the 1-byte tabular approach here for easy reference:
 
-```
+```cpp
     uint32_t crc32(const uint8_t* M, uint32_t len_m) {
         uint32_t R = 0;
         for (uint32_t i = 0; i < len_m; ++i) {
@@ -1377,7 +1377,7 @@ And replacing the inner loop body with the 1-byte crc32 intrinsic, we get:
 
 ### OPTION 11: 1-byte Hardware-accelerated ###
 
-```
+```cpp
     uint32_t crc32(const uint8_t* M, uint32_t len_m) {
         uint32_t R = 0;
         for (uint32_t i = 0; i < len_m; ++i) {
@@ -1399,7 +1399,7 @@ Let's just jump straight to the maximum, then, and do 8 bytes at a time. Because
 
 ### OPTION 12: 8-byte Hardware-accelerated ###
 
-```
+```cpp
     uint32_t crc32(const uint64_t* M, uint32_t len_m) {
         uint64_t R = 0;
         for (uint32_t i = 0; i < len_m >> 3; ++i) {
@@ -1736,7 +1736,7 @@ That's `2*256=512` entries, 32 bits each. Not bad.
 
 To construct the table, we'll use a technique similar to how we generated the tables for our Tabular method. In this case, we start with the value 1 in R. For each new entry, we churn 64 zero bits through the CRC machine, then store out the new table entry and continue churning. We repeat until we have 512 entries:
 
-```
+```cpp
     void initialize_golden_lut() {
         uint32_t R = 1;
         for (uint32_t i = 0; i < 512; ++i) {
@@ -1756,7 +1756,7 @@ We need a way to implement those. Recall the simple implementation of carryless 
 
 We can implement this directly:
 
-```
+```cpp
     uint64_t clmul(const uint32_t a, const uint32_t b) {
         uint64_t ret = 0;
         for (uint32_t i = 0; i < 32; ++i) {
@@ -1770,7 +1770,7 @@ We can implement this directly:
 
 MSVC compiles this very poorly; other compilers do okay. MSVC makes two mistakes: it doesn't fully unroll the loop, and it also generates jumps instead of conditional moves. There's no way to fix the first mistake, as MSVC does not allow loop unroll hints like other compilers do (other than vector independence hinting, which is not useful here). However we can trick it into fixing the second mistake:
 
-```
+```cpp
     uint64_t clmul(const uint32_t a, const uint32_t b) {
         uint64_t ret = 0;
         for (uint32_t i = 0; i < 32; ++i) {
@@ -1802,6 +1802,7 @@ All modern compilers provide intrinsics that allow us to perform these operation
 
 A further optimization we can perform here is that we will always need to load the pair of table constants for x-64 and 2x-64 simultaneously, so we can arrange our table to group those together into a single 64-bit value and thereby load both constants with a single 64-bit load:
 
+```cpp
     void print_golden_lut() {
         printf("const uint64_t lut[] = {\n");
         for (uint32_t i = 0; i < 256; ++i) {
@@ -1809,13 +1810,14 @@ A further optimization we can perform here is that we will always need to load t
         }
         printf("};\n");
     }
+```
 
 Note that we print our table as 256 packed 64-bit values, each consisting of indices i and 2i + 1, i.e. x - 64 and 2x - 64, as desired.
 
 
 Next we must wrestle with the compiler to get it to produce efficient codegen for the fairly complex operation I want to perform. I'd like a big waterfall of CRC32 instructions, with absolutely nothing else in between, referencing the message data directly in memory, so we get the maximally efficient pipelining that's the whole point of this process. To make this work, I want precisely the following codegen. Note that I'm ignoring the special case CLMUL stuff that would be at the end of this process, for now:
 
-```
+```cpp
     ...
     CASE_5:
      crc32       crcA, [end_of_A_chunk-40]
@@ -1868,7 +1870,7 @@ This is not the only optimization or size reduction we're leaving on the table i
 
 The good news is that compilers will generate jump tables from a fallthrough switch statement, which looks like this:
 
-```
+```cpp
     switch (n) {
         case 4:
         // CRCs for triplet 4
@@ -1885,7 +1887,7 @@ Those case statements are just labels. When the switch is encountered, the compi
 
 Okay, we're ready for an (almost) complete implementation in C++:
 
-```
+```cpp
     uint32_t crc32(const uint8_t* M, uint32_t bytes) {
         uint64_t pA = (uint64_t)M;
         uint64_t crcA = 0;
@@ -1936,31 +1938,31 @@ Okay, we're ready for an (almost) complete implementation in C++:
 
 The vector stuff in particular can be very tricky, so let's go over it one line at a time.
 
-```
+```cpp
     uint64_t pA = (uint64_t)M;
 ```
 
 pA is a 64-bit integer pointing to our A block of data. It will start right at the beginning of M.
 
-```
+```cpp
     uint64_t crcA = 0;
 ```
 
 Initialize our A-chunk CRC to 0. This one is outside the while loop, because it will also serve to accumulate the overall CRC value if we have to do more than one round of processing (which we will if the message is longer than our self-imposed limit of 256 iterations).
 
-```
+```cpp
     while (bytes) {
 ```
 
 While there is data remaining to process...
 
-```
+```cpp
     const uint32_t n = bytes < 256 * 24 ? bytes / 24 : 256;
 ```
 
 Recall that this is a ternary expression which is equivalent to:
 
-```
+```cpp
     uint32_t n;
     if (bytes < 256 * 24) {
         n = bytes / 24;
@@ -1974,7 +1976,7 @@ We are calculating n, the number of blocks in each chunk. We are splitting the b
 
 However, if that value would be greater than 256, we will not process the whole message, and instead limit ourselves to n = 256, because that's how big our LUT (look-up table) is - not to mention our jump table. So in that case we just set n = 256.
 
-```
+```cpp
     pA += 8 * n;
     uint64_t pB = pA + 8 * n;
     uint64_t pC = pB + 8 * n;
@@ -1983,13 +1985,13 @@ However, if that value would be greater than 256, we will not process the whole 
 We move our A pointer to the END of its chunk, since, recall, our switch statement will process data relative to the end of the chunks, not the beginning.
 We also create similar B and C pointers to the end of the B and C chunks, respectively.
 
-```
+```cpp
     uint64_t crcB = 0, crcC = 0;
 ```
 
 Initialize our B-chunk and C-chunk CRCs to 0. These are inside the while loop, because they only exist during parallel processing. After we've done our iterations, they will fold their results into crcA, and crcA alone will accumulate the value and carry it out of the while loop (or back through for another round of processing, if we have more than our self-imposed limit of `256*3` blocks worth of message to process).
 
-```
+```cpp
     switch (n) {
         ...
     }
@@ -2005,20 +2007,20 @@ Note that this is a very long, redundant stream of code. It would be nice if we 
 
 There is a way to shorten it using preprocessor macros, so that the compiler sees exactly the code shown above, but it appears shorter to us when editing the code. I've skipped over this and a few other details for now, but they'll be in the final implementation later.
 
-```
+```cpp
     crcA = _mm_crc32_u64_t(crcA, *(uint64_t*)(pA - 8));
     crcB = _mm_crc32_u64_t(crcB, *(uint64_t*)(pB - 8));
 ```
 
 This is case 1: the last triplet. We do it normally for A and B, but NOT for C - that's our special case! Time to CLMUL:
 
-```
+```cpp
     __m128i vK = _mm_cvtepu32_epi64(_mm_loadu_si128((__m128i*)(&lut[n - 1])));
 ```
 
 This one's complex enough to tackle in pieces:
 
-```
+```cpp
     _mm_loadu_si128((__m128i*)(&lut[n - 1]))
 ```
 
@@ -2032,7 +2034,7 @@ This loads an XMM register with 128 bits of data starting at the memory location
 
 Now the outer expression is applied to that register:
 
-```
+```cpp
     _mm_cvtepu32_epi64(...)
 ```
 
@@ -2052,19 +2054,19 @@ However, it ISN'T actually a concern. I have written the combination of _mm_cvte
 
 Anyway: recall that these indices correspond to the precomputed table values for CRC(1 << 2x-64) and CRC(1 << x-64), respectively. They are now zero-extended out to 64-bit values, as required by the CLMUL instruction, ready to be CLMUL'd against crcA and crcB, respectively. So that's what we do:
 
-```
+```cpp
     __m128i vA = _mm_clmulepi64_si128(_mm_cvtsi64_si128(crcA), vK, 0);
 ```
 
 Move crcA into the first 64 bits of a vector register. CLMUL it by the first 64 bits of vK. Store the result in vA.
 
-```
+```cpp
     __m128i vB = _mm_clmulepi64_si128(_mm_cvtsi64_si128(crcB), vK, 16);
 ```
 
 Move crcB into the first 64 bits of a vector register. CLMUL it by the SECOND 64 bits of vK. Store the result in vB.
 
-```
+```cpp
     crcA = _mm_crc32_u64(crcC, _mm_cvtsi128_si64(_mm_xor_si128(vA, vB)) ^ *(uint64_t*)(pC - 8));
 ```
 
@@ -2076,7 +2078,7 @@ This line is our "golden" result! It calculates:
 
 It's complex so we can break it apart too:
 
-```
+```cpp
     _mm_xor_si128(vA, vB)
 ```
 
@@ -2094,19 +2096,19 @@ The low 64 bits of vB contain:
 
 So the line XORs those two quantities together. Next:
 
-```
+```cpp
     _mm_cvtsi128_si64(...)
 ```
 
 We move that result back out into a GPR.
 
-```
+```cpp
     ... ^ *(uint64_t*)(pC - 8)
 ```
 
 XOR that result with the final 8 bytes of C.
 
-```
+```cpp
     crcA = _mm_crc32_u64(crcC, ...);
 ```
 
@@ -2114,19 +2116,19 @@ Perform the operation CRC(crcC, result) on that result. Store that final result 
 
 Next line:
 
-```
+```cpp
     bytes -= 24 * n
 ```
 
 We've just processed n blocks of 8 bytes each, in each of A, B, and C, for a total of `8*3*n = 24*n` bytes of message processed. We update 'bytes' accordingly. The accumulated result is in crcA.
 
-```
+```cpp
     pA = pC;
 ```
 
 Recall that we set pC to the end of the C block, which is the end of the data that we just finished processing. That location therefore also represents the beginning of remaining unprocessed data, if any. We therefore advance pA to that point, ready for the next iteration of the while loop (if any).
 
-```
+```cpp
     return crcA;
 ```
 
@@ -2137,7 +2139,7 @@ This is almost it; we just have to tackle a few things I left off for clarity fo
 
 - Alignment. We are processing message data 64 bits at a time, and therefore loading 64 bits at a time in our CRC instructions. Most computer architectures like the incoming data to also be aligned to an 8 byte boundary when you do this, meaning the address where the data is located is divisible by 8. Modern x86 architectures will not crash if you do not obey this, but there may be a performance penalty, so it is potentially wise to advance a few bytes manually, just crunching CRC 1 byte at a time, until you're 8-byte-aligned, prior to beginning the main loop. The following expression calculates the amount of bytes needed to achieve this and then computes that many bytes of CRC, advancing bytes and decrementing pA as it goes:
 
-```
+```cpp
     uint32_t toAlign = ((uint64_t)-(int64_t)pA) & 7;
 
     for (; toAlign && bytes; ++pA, --bytes, --toAlign)
@@ -2151,7 +2153,7 @@ Note that this is often not something you have to think explicitly about if you'
 
 - Faster division by 24. Good compilers will optimize that bytes / 24 into a multiply and a shift, but we know something the compiler doesn't: in that 'bytes / 24', bytes will never be larger than `256*24`. Actually, compilers SHOULD know that, since it's a simple ternary that obviously excludes any larger value, but they don't currently take advantage of this. But we can do so manually to produce a potentially faster division and smaller code size:
 
-```
+```cpp
     x * 2731 >> 16
 ```
 
@@ -2160,7 +2162,7 @@ This expression is equivalent to x / 24 for x <= `256*24`. See the outstanding b
 
 - More compact representation of that giant switch statement. We can use a series of "doubler" preprocessor macros to repeatedly duplicate a single case implementation until we have all of them:
 
-```
+```cpp
     #define CRC_ITER(i) case i:                             \
     crcA = _mm_crc32_u64(crcA, *(uint64_t*)(pA - 8*(i)));   \
     crcB = _mm_crc32_u64(crcB, *(uint64_t*)(pB - 8*(i)));   \
@@ -2185,7 +2187,7 @@ This expression is equivalent to x / 24 for x <= `256*24`. See the outstanding b
 
 - Starting with an existing CRC value. A production-ready CRC implementation should allow the user to supply an existing value for the R register, just like the x86 crc32 instruction does. This is easy for us to incorporate: instead of initializing crcA to 0 at the beginning, support an additional function argument, which defaults to 0, that the user may use if they wish in order to pass in a nonzero initial CRC value, and initialize crcA to that:
 
-```
+```cpp
     uint32_t crc32(const uint8_t* M, uint32_t bytes, uint32_t prev = 0) {
         ...
         uint64_t crcA = (uint64_t)prev;
@@ -2193,13 +2195,13 @@ This expression is equivalent to x / 24 for x <= `256*24`. See the outstanding b
 
 - Inverting or otherwise modifying the initial and final CRC values. Production-ready CRC implementations often initialize the CRC register to, instead of just 'prev', prev XOR'd with some constant, often 0xFFFFFFFF, which is equivalent to a bitwise inversion, i.e. a bitwise NOT:
 
-```
+```cpp
     uint64_t crcA = (uint64_t)(uint32_t)(~prev);
 ```
 
 And similarly for the output at the end:
 
-```
+```cpp
     return ~(uint32_t)crcA;
 ```
 
@@ -2210,7 +2212,7 @@ Again, this isn't actually making the CRC more secure in the general case: we ha
 
 - Taking a void* instead of a uint8_t* for the message input. We're already casting the message to a uint64_t right away, so we should allow a convenient interface for clients. Taking a void* allows clients to pass a buffer of any kind without having to cast on their end, so it's good practice:
 
-```
+```cpp
     uint32_t crc32(const void* M...
 ```
 
@@ -2225,7 +2227,7 @@ Putting it all together:
 
 ### OPTION 13: Golden ###
 
-```
+```cpp
     uint32_t crc32(const uint8_t* M, uint32_t bytes, uint32_t prev = 0) {
         uint64_t pA = (uint64_t)M;
         uint64_t crcA = (uint64_t)(uint32_t)(~prev);
