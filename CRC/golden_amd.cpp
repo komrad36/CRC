@@ -87,7 +87,7 @@ crcB = _mm_crc32_u64(crcB, *(uint64_t*)(pB - 8*(i)));
 constexpr uint32_t LEAF_SIZE_AMD = 7 * 16;
 
 // OPTION 14
-uint32_t option_14_golden_amd(const void* M, uint32_t bytes, uint32_t prev = 0)
+uint32_t option_14_golden_amd(const void* M, uint32_t bytes, uint32_t prev/* = 0*/)
 {
     uint64_t pA = (uint64_t)M;
     //uint64_t crcA = (uint64_t)(uint32_t)(~prev); // if you want to invert prev

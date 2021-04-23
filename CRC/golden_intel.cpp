@@ -136,7 +136,7 @@ crcC = _mm_crc32_u64(crcC, *(uint64_t*)(pC - 8*(i)));
 constexpr uint32_t LEAF_SIZE_INTEL = 6 * 24;
 
 // OPTION 13
-uint32_t option_13_golden_intel(const void* M, uint32_t bytes, uint32_t prev = 0)
+uint32_t option_13_golden_intel(const void* M, uint32_t bytes, uint32_t prev/* = 0*/)
 {
     uint64_t pA = (uint64_t)M;
     //uint64_t crcA = (uint64_t)(uint32_t)(~prev); // if you want to invert prev

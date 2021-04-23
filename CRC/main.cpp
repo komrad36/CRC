@@ -30,8 +30,8 @@ uint32_t option_10_tabular_16_bytes(const void* M, uint32_t bytes);
 uint32_t option_11_hardware_1_byte(const void* M, uint32_t bytes);
 uint32_t option_12_hardware_8_bytes(const void* M, uint32_t bytes);
 
-uint32_t option_13_golden_intel(const void* M, uint32_t bytes, uint32_t prev/* = 0*/);
-uint32_t option_14_golden_amd(const void* M, uint32_t bytes, uint32_t prev/* = 0*/);
+uint32_t option_13_golden_intel(const void* M, uint32_t bytes, uint32_t prev = 0);
+uint32_t option_14_golden_amd(const void* M, uint32_t bytes, uint32_t prev = 0);
 
 int main()
 {
