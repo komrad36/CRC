@@ -102,7 +102,7 @@ int main()
         TestItem("Option 7:  Tabular  - 2 bytes ",	option_7_tabular_2_bytes,	    300),
         TestItem("Option 11: Hardware - 1 byte  ",	option_11_hardware_1_byte,	    500),
         TestItem("Option 8:  Tabular  - 4 bytes ",	option_8_tabular_4_bytes,	    600),
-        TestItem("Option 9:  Tabul32  - 8 bytes ",	option_9_tabular_8_bytes,	    1100),
+        TestItem("Option 9:  Tabular  - 8 bytes ",	option_9_tabular_8_bytes,	    1100),
         TestItem("Option 10: Tabular  - 16 bytes",	option_10_tabular_16_bytes,	    1500),
         TestItem("Option 12: Hardware - 8 bytes ",	option_12_hardware_8_bytes,	    5000),
         TestItem("Option 14: Golden   - AMD     ",	option_14_golden_amd,		    9000),
