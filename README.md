@@ -445,7 +445,7 @@ At each step, we KNOW the current bit will end up off. It's either off to start 
 
 In other words, the working register's "view" of the message begins one past the current bit. Think of it as a sliding window that sweeps to the right across the message until all bits have been visited, i.e. until R's top bit is one bit past the end of the message.
 
-At each step, we check the current bit, which just slid out of the left side of R. If it's set, i.e. if we shifted out a 1 bit, we XOR R against the poly. We the shift the sliding window to the right, or equivalently, shift its contents one bit to the left, including shifting in the next bit of message into the newly vacated rightmost bit.
+At each step, we check the current bit, which just slid out of the left side of R. If it's set, i.e. if we shifted out a 1 bit, we XOR R against the poly. We then shift the sliding window to the right, or equivalently, shift its contents one bit to the left, including shifting in the next bit of message into the newly vacated rightmost bit.
 
 Note that instead of having to separately "catch" and check the leftmost bit at each iteration, after it has been shifted out of the register, to decide whether to XOR on this step, we can simply check it first, THEN shift it out.
 
